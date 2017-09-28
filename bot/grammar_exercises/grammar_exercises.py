@@ -38,15 +38,19 @@ def wrest_a_word(sentence):
 
 
 def get_random_words(initial_word, random_sentences):
-    result = []
+    result = [initial_word]
     initial_word_forms = get_word_forms(initial_word)
+    for word in initial_word_forms:
+        if word not in result:
+            result.append(word)
     result.append(initial_word_forms)
-    while len(result) < CHOICES*3:
+    while len(result) < CHOICES*2:
         for sentence in random_sentences:
             words = get_words(sentence[0])
             for word in words:
                 if word not in result:
                     result.append(word)
+    result = result[1:]
     shuffle(result)
     result = result[CHOICES-1]
     result.append(initial_word)
@@ -93,7 +97,7 @@ class PhraseConstructor(GExercise):
               "{}".format(tuple(self.words)))
 
     def check_answer(self, answer):
-        pass
+        print('ha')
 
 
 class InsertWord(GExercise):
@@ -132,8 +136,8 @@ def do_exercise(exercise_class):
 
 
 if __name__ == '__main__':
-    #do_exercise(PhraseConstructor)
-    #test
     words = ['gave', 'went', 'going', 'dating', 'frozen', 'me', 'running', 'kitchen', 'rock']
     for word in words:
         print(get_word_forms(word))
+    do_exercise(InsertWord)
+
