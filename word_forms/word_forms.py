@@ -4,7 +4,8 @@ try:
 except LookupError:
     import nltk
     nltk.download("wordnet")
-import inflect
+from inflect import engine
+from nltk.stem.wordnet import WordNetLemmatizer
 
 from .constants import (ALL_WORDNET_WORDS, CONJUGATED_VERB_LIST,
                         ADJECTIVE_TO_ADVERB)
@@ -52,14 +53,16 @@ def get_related_lemmas(word):
 
 
 def singularize(noun):
-    singular = inflect.engine().singular_noun(noun)
+    singular = engine().singular_noun(noun)
     if singular in ALL_WORDNET_WORDS:
         return singular
     return noun
 
 
 def get_word_forms(word):
+    word_initial = word
     word = singularize(word)
+    word = WordNetLemmatizer().lemmatize(word, 'v')
     related_lemmas = get_related_lemmas(word)
     related_words_dict = {"n" : set(), "a" : set(), "v" : set(), "r" : set()}
     for lemma in related_lemmas:
@@ -69,7 +72,7 @@ def get_word_forms(word):
         related_words_dict[pos].add(lemma.name())
     noun_set = [noun for noun in related_words_dict["n"]]
     for noun in noun_set:
-        related_words_dict["n"].add(inflect.engine().plural_noun(noun))
+        related_words_dict["n"].add(engine().plural_noun(noun))
     verb_set = [verb for verb in related_words_dict["v"]]
     for verb in verb_set:
         for conjugated_verbs in CONJUGATED_VERB_LIST:
@@ -82,4 +85,8 @@ def get_word_forms(word):
             related_words_dict["r"].add(ADJECTIVE_TO_ADVERB[adjective])
         except KeyError:
             pass
-    return related_words_dict
+    result = []
+    for key in related_words_dict.keys():
+        for word in related_words_dict[key]:
+            result.append(word)
+    return result

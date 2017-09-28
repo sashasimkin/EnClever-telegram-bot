@@ -7,7 +7,6 @@ except LookupError:
     import nltk
     nltk.download("wordnet")
 from unipath import Path
-import inflect
 
 ALL_WORDNET_WORDS = set()
 for synset in list(wn.all_synsets()):
@@ -23,16 +22,16 @@ for line in lines:
         CONJUGATED_VERB_LIST.append(
             [string for string in line.strip().split(",") if string != ""])
 
-ADJECTIVE_TO_ADVERB = {"good" : "well", "fast" : "fast", "hard" : "hard",
-                       "late" : "late", "early" : "early", "daily" : "daily",
-                       "straight" : "straight"}
-for ss in wn.all_synsets(pos = "r"):
+ADJECTIVE_TO_ADVERB = {"good": "well", "fast": "fast", "hard": "hard",
+                       "late": "late", "early": "early", "daily": "daily",
+                       "straight": "straight"}
+for ss in wn.all_synsets(pos="r"):
     for lemma in ss.lemmas():
         word = lemma.name()
-        this_word_lemmas = [lemma for ss in wn.synsets(word, pos = wn.ADV)
+        this_word_lemmas = [lemma for ss in wn.synsets(word, pos=wn.ADV)
                             for lemma in ss.lemmas() if lemma.name() == word]
         pertainyms = [pertainym.name() for this_word_lemma in this_word_lemmas
-                      for pertainym in this_word_lemma.pertainyms() ]
+                      for pertainym in this_word_lemma.pertainyms()]
         matches = get_close_matches(word, pertainyms)
         if len(matches) > 0:
             ADJECTIVE_TO_ADVERB[matches[0]] = word

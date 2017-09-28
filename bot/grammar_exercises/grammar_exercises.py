@@ -1,9 +1,10 @@
-from random import randint, shuffle
+from random import randint, shuffle, choice
 import re
 from word_forms.word_forms import get_word_forms
 
 PUNCTUATION = """!"#$%&()*+,-./:;<=>?@[\]^_`{|}~"""
 ATTEMPTS = 3
+CHOICES = 10
 #Затычка: набор предложений под какое-то правило
 examples = [["What a fantastic view.", "Какой фантастический вид."],
             ["What a beautiful dress!", "Какое красивое платье!"],
@@ -22,8 +23,35 @@ def remove_punctuation(sentence):
 
 def get_words(sentence):
     words = remove_punctuation(sentence).split()
-    shuffle(words)
     return words
+
+
+#заглушка на выбор слова по правилу
+def wrest_a_word(sentence):
+    words = get_words(sentence)
+    word_ind = randint(0, len(words) - 1)
+    word = words[word_ind]
+    words = sentence.split()
+    words[word_ind] = "*****"
+    sentence = ' '.join(words)
+    return word, sentence
+
+
+def get_random_words(initial_word, random_sentences):
+    result = []
+    initial_word_forms = get_word_forms(initial_word)
+    result.append(initial_word_forms)
+    while len(result) < CHOICES*3:
+        for sentence in random_sentences:
+            words = get_words(sentence[0])
+            for word in words:
+                if word not in result:
+                    result.append(word)
+    shuffle(result)
+    result = result[CHOICES-1]
+    result.append(initial_word)
+    shuffle(result)
+    return result
 
 
 #заглушка для ввода данных
@@ -38,10 +66,9 @@ def store_result():
 
 class GExercise:
     def __init__(self, example_list):
-        sentences = example_list[randint(0, len(example_list)-1)]
+        sentences = choice(example_list)
         self.sentence_en = sentences[0]
         self.sentence_ru = sentences[1]
-        self.words = get_words(self.sentence_en)
 
     def check_answer(self, answer):
         answer = answer.lower()
@@ -56,11 +83,33 @@ class GExercise:
 class PhraseConstructor(GExercise):
     def __init__(self, example_list):
         GExercise.__init__(self, example_list)
+        self.words = get_words(self.sentence_en)
+        shuffle(self.words)
 
     def ask_user(self):
         print("Предложение на русском языке:\n"
               "{}".format(self.sentence_ru))
         print("Составь это предложение на английском языке, используя эти слова:\n"
+              "{}".format(tuple(self.words)))
+
+    def check_answer(self, answer):
+        pass
+
+
+class InsertWord(GExercise):
+    def __init__(self, example_list):
+        GExercise.__init__(self, example_list)
+        info = wrest_a_word(self.sentence_en)
+        self.word_a = info[0]
+        self.sentence_en_mod = info[1]
+        self.words = get_random_words(self.word_a, example_list)
+
+    def ask_user(self):
+        print("Предложение на русском языке:\n"
+              "{}".format(self.sentence_ru))
+        print("В этом предложении пропущено слово:\n"
+              "{}".format(tuple(self.sentence_en_mod)))
+        print("Вот доступные слова для подстановки:\n"
               "{}".format(tuple(self.words)))
 
 
@@ -83,6 +132,8 @@ def do_exercise(exercise_class):
 
 
 if __name__ == '__main__':
-    do_exercise(PhraseConstructor)
+    #do_exercise(PhraseConstructor)
     #test
-    print(get_word_forms("run"))
+    words = ['gave', 'went', 'going', 'dating', 'frozen', 'me', 'running', 'kitchen', 'rock']
+    for word in words:
+        print(get_word_forms(word))
