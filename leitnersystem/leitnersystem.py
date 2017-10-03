@@ -7,7 +7,6 @@ BOTTOM_GROUP = 1
 MIDDLE_GROUP = 2
 TOP_GROUP = 3
 
-# TODO: создать таблицу для хранения групп и интервалов повторения?
 TOP_GROUP_REPEAT_INTERVAL = 5
 MIDDLE_GROUP_REPEAT_INTERVAL = 3
 BOTTOM_GROUP_REPEAT_INTERVAL = 1
@@ -60,6 +59,18 @@ def add_single_card_to_box(card):
         print("Card already in BOX")
 
 
+def delete_card_from_box(card):
+    """
+    Удаляет карту из коробки
+    :param card: карта для удаления
+    """
+    try:
+        card_in_box = RepeatBox.objects.get(flash_card_id=card.id)
+        card_in_box.delete()
+    except DoesNotExist:
+        print("Карты нет в БД для повторения")
+
+
 def add_cards_to_box(card_list):
     """
     Добавляет список карточек в коробку для повторений
@@ -108,6 +119,6 @@ if __name__ == '__main__':
     for card_in_box in get_cards_to_repeat():
         card = FlashCard.objects.get(id=card_in_box.flash_card_id)
         print(card.term)
-        answer = input("Введите ответ (№)") #Ответом является номер карточки
+        answer = input("Введите ответ (№)")  # Ответом является номер карточки
         check_user_answer(card, answer)
         print("*" * 20)
