@@ -8,7 +8,7 @@ nltk.download('averaged_perceptron_tagger')
 
 PUNCTUATION = """!"#$%&()*+,-./:;<=>?@[\]^_`{|}~"""
 ATTEMPTS = 3
-CHOICES = 10
+CHOICES = 5
 GRAMMAR_ADJECTIVES_RULES = ('-est', 'most',)
 GRAMMAR_ARTICLES_RULES = ('a', 'an', 'the',)
 GRAMMAR_PRONOUNS_RULES = ('indefinite', 'personal', 'possessive',)
@@ -113,7 +113,10 @@ def wrest_a_word(sentence, word):
     """
     Get a word from the sentence
     """
-    return sentence.replace(word, '*****')
+    words = sentence.split()
+    word_ind = words.index(word)
+    words[word_ind] = "*****"
+    return ' '.join(words)
 
 
 def get_random_words(initial_word, random_sentences):
