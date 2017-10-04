@@ -1,2 +1,5 @@
 mongoengine==0.13.0
 click==6.7
+nltk
+unipath
+inflect
