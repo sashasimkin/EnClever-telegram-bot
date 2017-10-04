@@ -1,7 +1,8 @@
 from mongoengine import *
 import datetime
+import settings
 
-connect("enclever_test", host="46.101.216.92", username="Nlx74OMEgacFnxSS")  # тестовая  БД
+connect("enclever_test", host=settings.MONGO_DB_URI)  # тестовая  БД
 
 BOTTOM_GROUP = 1
 MIDDLE_GROUP = 2
