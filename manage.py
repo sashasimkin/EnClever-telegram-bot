@@ -2,8 +2,6 @@
 import os
 from importlib import import_module
 
-from . import settings
-
 
 def discover_commands(path='management'):
     """

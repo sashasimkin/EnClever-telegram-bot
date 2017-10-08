@@ -2,8 +2,6 @@ from mongoengine import *
 import datetime
 import settings
 
-connect("enclever_test", host=settings.MONGO_DB_URI)  # тестовая  БД
-
 BOTTOM_GROUP = 1
 MIDDLE_GROUP = 2
 TOP_GROUP = 3
@@ -52,33 +50,40 @@ def add_single_card_to_box(card):
     """
     Добавляет карточку в коробку для повторений
     :param card: флеш карта для повторения
+    :return карточку добавленную в коробку
     """
     if len(RepeatBox.objects(flash_card_id=card.id)) == 0:  # проверка, есть ли карта в коробке
         card_in_box = RepeatBox(flash_card_id=card.id, group=BOTTOM_GROUP, date_to_repeat=datetime.date.today())
         card_in_box.save()
     else:
         print("Card already in BOX")
+        card_in_box = RepeatBox.objects.get(flash_card_id=card.id)
+    return card_in_box
 
 
 def delete_card_from_box(card):
     """
     Удаляет карту из коробки
     :param card: карта для удаления
+    :return карты в коробке без удалённой карты
     """
     try:
         card_in_box = RepeatBox.objects.get(flash_card_id=card.id)
         card_in_box.delete()
     except DoesNotExist:
         print("Карты нет в БД для повторения")
+    return RepeatBox.objects()
 
 
 def add_cards_to_box(card_list):
     """
     Добавляет список карточек в коробку для повторений
     :param card_list:
+    :return список карт для повторения
     """
     for card in card_list:
         add_single_card_to_box(card)
+    return RepeatBox.objects()
 
 
 def get_cards_to_repeat():
@@ -92,10 +97,12 @@ def check_user_answer(card, answer):
     """
     :param card: карточка заданная пользователю
     :param answer: ответ пользователя
+    :return boolean правильный ли был ответ пользователя
     """
     card_in_box = RepeatBox.objects.get(flash_card_id=card.id)  # Обьект, в коробке для повторения, с id карточки
     interval_to_repeat = BOTTOM_GROUP_REPEAT_INTERVAL  # по умолчания интервал повторения каждый день
     if card.term_native == answer:
+        is_user_answer_correct = True
         print("Correct")
         if card_in_box.group < TOP_GROUP:  # если карточка ещё не в верхнем(3) уровне, продвигаем её на верх
             card_in_box.group += 1
@@ -104,22 +111,38 @@ def check_user_answer(card, answer):
         if card_in_box.group == TOP_GROUP:  # устанавливает интервал повторения соответсвующий группе 2 (раз в 5 дней)
             interval_to_repeat = TOP_GROUP_REPEAT_INTERVAL
     else:  # если ответ не верный, сбрасываем карточку на 1ый уровень, интервал повторений - каждый день
+        is_user_answer_correct = False
         print("Incorrect")
         card_in_box.group = BOTTOM_GROUP
     card_in_box.date_to_repeat += datetime.timedelta(days=interval_to_repeat)  # дата, когда повторить карточку
     card_in_box.save()
+    return is_user_answer_correct
+
+
+def add_dummy_cards():
+    """
+     если БД пуста, заполняет ему dummy картами
+    """
+    if len(FlashCard.objects()) == 0:
+        dummy_card_list = generate_dummy_cards()
+        add_cards_to_box(dummy_card_list)
+
+
+def train_cards():
+    """
+    Начинает тренировку карточек
+    """
+    connect("enclever_test", host=settings.MONGO_DB_URI)  # тестовая  БД
+    add_dummy_cards()
+    if len(get_cards_to_repeat()) == 0:
+        print("Вы уже всё повторили, приходите завтра")
+    else:
+        for card_in_box in get_cards_to_repeat():
+            card = FlashCard.objects.get(id=card_in_box.flash_card_id)
+            print(card.term)
+            answer = input("Введите ответ (№)")  # Ответом является номер карточки
+            check_user_answer(card, answer)
 
 
 if __name__ == '__main__':
-    if len(FlashCard.objects()) == 0:  # если БД пуста, заполняет ему dummy картами
-        dummy_card_list = generate_dummy_cards()
-        add_cards_to_box(dummy_card_list)
-    else:
-        dummy_card_list = FlashCard.objects()
-
-    for card_in_box in get_cards_to_repeat():
-        card = FlashCard.objects.get(id=card_in_box.flash_card_id)
-        print(card.term)
-        answer = input("Введите ответ (№)")  # Ответом является номер карточки
-        check_user_answer(card, answer)
-        print("*" * 20)
+    train_cards()
