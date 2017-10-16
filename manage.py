@@ -2,7 +2,7 @@
 import os
 from importlib import import_module
 
-from . import settings
+import settings
 
 
 def discover_commands(path='management'):
@@ -21,6 +21,7 @@ def discover_commands(path='management'):
 
 
 if __name__ == '__main__':
+    print(settings.BOT_TOKEN)
     discover_commands()
 
     from management.cli import cli

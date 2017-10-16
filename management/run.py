@@ -5,8 +5,9 @@ from bot.main import EnCleverBot
 
 
 @click.command()
-def run():
-    EnCleverBot().run()
+@click.argument('token')
+def run(token):
+    EnCleverBot(token).run()
 
 
 cli.add_command(run)
